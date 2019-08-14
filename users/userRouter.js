@@ -29,7 +29,7 @@ router.post("/", validateUser, async (req, res) => {
 });
 // tested with Postman
 
-router.post("/:id/posts", async (req, res) => {
+router.post("/:id/posts", validateUserId, validatePost, async (req, res) => {
   //   const postInfo = { ...req.body, user_id: req.params.id };
 
   //   try {
@@ -74,7 +74,7 @@ router.get("/", async (req, res) => {
 });
 // tested with Postman
 
-router.get("/:id", async (req, res) => {
+router.get("/:id", validateUserId, async (req, res) => {
   try {
     const { id } = req.params;
     const user = await Users.getById(id);
@@ -89,7 +89,7 @@ router.get("/:id", async (req, res) => {
 });
 // tested with Postman
 
-router.get("/:id/posts", async (req, res) => {
+router.get("/:id/posts", validateUserId, async (req, res) => {
   try {
     const { id } = req.params;
     const post = await Users.getUserPosts(id);
@@ -111,7 +111,7 @@ router.get("/:id/posts", async (req, res) => {
 });
 // tested with Postman
 
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", validateUserId, async (req, res) => {
   try {
     const user = await Users.remove(req.params.id);
     if (user) {
@@ -131,7 +131,7 @@ router.delete("/:id", async (req, res) => {
 });
 // tested with Postman
 
-router.put("/:id", async (req, res) => {
+router.put("/:id", validateUserId, async (req, res) => {
   try {
     const user = await Users.update(req.params.id, req.body);
     if (user) {
