@@ -18,7 +18,8 @@ server.get("/", (req, res) => {
 });
 
 //custom middleware
-
+// logger logs to the console the following information:
+// request method, request url and timestamp
 function logger(req, res, next) {
   const currentTime = new Date().toISOString();
   console.log(
