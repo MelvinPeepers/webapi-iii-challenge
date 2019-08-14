@@ -1,7 +1,7 @@
 const express = require("express");
 
 // const postRouter = require("./posts/postRouter.js");
-// const userRouter = require("./users/userRouter.js");
+const userRouter = require("./users/userRouter.js");
 
 const server = express();
 
@@ -9,7 +9,7 @@ const server = express();
 server.use(express.json());
 
 // server.use("/api/posts", postRouter);
-// server.use("/api/users", userRouter);
+server.use("/api/users", userRouter);
 
 server.use(logger);
 
