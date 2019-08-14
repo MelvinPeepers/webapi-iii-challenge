@@ -7,9 +7,48 @@ const Posts = require("../posts/postDb.js");
 // imports express router
 const router = express.Router();
 
-router.post("/", (req, res) => {});
+router.post("/", async (req, res) => {
+  try {
+    if (req.body.name) {
+      const user = await Users.insert(req.body);
+      res.status(201).json(user);
+    } else {
+      res.status(400).json({
+        message: "Body missing 'name' field"
+      });
+    }
+  } catch (error) {
+    // log error to database
+    console.log(error);
+    res.status(500).json({
+      message: "Error adding the user"
+    });
+  }
+});
+// tested with Postman
 
-router.post("/:id/posts", (req, res) => {});
+router.post("/:id/posts", async (req, res) => {
+  //   const postInfo = { ...req.body, user_id: req.params.id };
+
+  //   try {
+  //     const savedPost = await Posts.insert(postInfo);
+  //     res.status(201).json(savedPost);
+  //   } catch (error) {
+  //     // log error to database
+  //     console.log(error.message);
+  //     res.status(500).json({
+  //       message: "Error saving post message"
+  //     });
+  //   }
+  req.body.user_id = req.params.id;
+  Posts.insert(req.body)
+    .then(post => {
+      res.status(201).json(post);
+    })
+    .catch(err => {
+      res.status(500).json({ message: "error" });
+    });
+});
 
 router.get("/", async (req, res) => {
   try {
@@ -48,11 +87,65 @@ router.get("/:id", async (req, res) => {
 });
 // tested with Postman
 
-router.get("/:id/posts", (req, res) => {});
+router.get("/:id/posts", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const post = await Users.getUserPosts(id);
 
-router.delete("/:id", (req, res) => {});
+    if (post) {
+      res.status(200).json(post);
+    } else {
+      res
+        .status(404)
+        .json({ message: "The user with the specified ID does not exist." });
+    }
+  } catch (error) {
+    // log error to database
+    console.log(error);
+    res.status(500).json({
+      error: "The posts information could not be retrieved."
+    });
+  }
+});
+// tested with Postman
 
-router.put("/:id", (req, res) => {});
+router.delete("/:id", async (req, res) => {
+  try {
+    const user = await Users.remove(req.params.id);
+    if (user) {
+      res.status(200).json(user);
+    } else {
+      res
+        .status(404)
+        .json({ message: "The user with the specified ID does not exist." });
+    }
+  } catch (error) {
+    // log error to database
+    console.log(error);
+    res.status(500).json({
+      message: "The user could not be removed."
+    });
+  }
+});
+// tested with Postman
+
+router.put("/:id", async (req, res) => {
+  try {
+    const user = await Users.update(req.params.id, req.body);
+    if (user) {
+      res.status(200).json(user);
+    } else {
+      res.status(404).json({ message: "The user could not be found." });
+    }
+  } catch (error) {
+    // log error to database
+    console.log(error);
+    res.status(500).json({
+      message: "Error updating the user."
+    });
+  }
+});
+// tested with Postman
 
 //custom middleware
 
