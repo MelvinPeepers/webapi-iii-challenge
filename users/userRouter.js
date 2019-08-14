@@ -7,7 +7,9 @@ const Posts = require("../posts/postDb.js");
 // imports express router
 const router = express.Router();
 
-router.post("/", async (req, res) => {
+// REQUEST HANDLERS
+
+router.post("/", validateUser, async (req, res) => {
   try {
     if (req.body.name) {
       const user = await Users.insert(req.body);
@@ -40,15 +42,22 @@ router.post("/:id/posts", async (req, res) => {
   //       message: "Error saving post message"
   //     });
   //   }
-  req.body.user_id = req.params.id;
-  Posts.insert(req.body)
+  // couldn't get the above to work, not sure why need to look into this more...
+
+  const newPost = req.body;
+
+  Posts.insert(newPost)
     .then(post => {
       res.status(201).json(post);
     })
     .catch(err => {
-      res.status(500).json({ message: "error" });
+      res.status(500).json({
+        err: err,
+        message: "Error saving post message"
+      });
     });
 });
+// tested with Postman
 
 router.get("/", async (req, res) => {
   try {
@@ -69,14 +78,7 @@ router.get("/:id", async (req, res) => {
   try {
     const { id } = req.params;
     const user = await Users.getById(id);
-
-    if (user) {
-      res.status(200).json(user);
-    } else {
-      res
-        .status(404)
-        .json({ message: "The user with the specified ID does not exist." });
-    }
+    res.status(200).json(user);
   } catch (error) {
     // log error to database
     console.log(error);
@@ -153,20 +155,51 @@ router.put("/:id", async (req, res) => {
 // if the id parameter is valid, store that user object as req.user
 // if id parameter does not match any user id, cancel the request
 // and respond with status 400 and { message: "invalid user id" }
-function validateUserId(req, res, next) {}
+function validateUserId(req, res, next) {
+  const { id } = req.params;
+  Users.getById(id).then(user => {
+    if (user) {
+      req.user = user;
+      next();
+    } else {
+      res.status(400).json({ message: "invalid user id" });
+    }
+  });
+  next();
+}
 
 //  validates the body on a request to create a new user
 // if the request body is missing, cancel the request and respond with
 // status 400 and { message: "missing user data" }
 // if the request body is missing the required name field, cancel the
 // request and respond with status 400 and { message: "missing required name field" }
-function validateUser(req, res, next) {}
+function validateUser(req, res, next) {
+  const body = req.body;
+  const name = req.body.name;
+  if (!body) {
+    res.status(400).json({ message: "missing user data" });
+  } else if (!name) {
+    res.status(400).json({ message: "missing required name field" });
+  } else {
+    next();
+  }
+}
 
 // validatePost validates the body on a request to create a new post
 // if the request body is missing, cancel the request and respond
 // with status 400 and { message: "missing post data" }
 // if the request body is missing the required text field,
 //cancel the request and respond with status 400 and { message: "missing required text field" }
-function validatePost(req, res, next) {}
+function validatePost(req, res, next) {
+  const body = req.body;
+  const text = req.body.text;
+  if (!body) {
+    res.status(400).json({ message: "missing post data" });
+  } else if (!text) {
+    res.status(400).json({ message: "missing required text field" });
+  } else {
+    next();
+  }
+}
 
 module.exports = router;
