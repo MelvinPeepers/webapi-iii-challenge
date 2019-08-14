@@ -26,6 +26,7 @@ function logger(req, res, next) {
       req.url
     }, Timestamp: ${currentTime} `
   );
+  next();
 }
-
+// tested in postman
 module.exports = server;
