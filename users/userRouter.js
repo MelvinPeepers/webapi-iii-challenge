@@ -9,16 +9,11 @@ const router = express.Router();
 
 // REQUEST HANDLERS
 
+// POST /api/users will add a new user
 router.post("/", validateUser, async (req, res) => {
   try {
-    if (req.body.name) {
-      const user = await Users.insert(req.body);
-      res.status(201).json(user);
-    } else {
-      res.status(400).json({
-        message: "Body missing 'name' field"
-      });
-    }
+    const user = await Users.insert(req.body);
+    res.status(201).json(user);
   } catch (error) {
     // log error to database
     console.log(error);
@@ -27,37 +22,25 @@ router.post("/", validateUser, async (req, res) => {
     });
   }
 });
-// tested with Postman
+// TESTED with POSTMAN
 
+// POST /api/users/:id/posts adds a post for a user
 router.post("/:id/posts", validateUserId, validatePost, async (req, res) => {
-  //   const postInfo = { ...req.body, user_id: req.params.id };
+  const postInfo = { ...req.body, user_id: req.params.id };
 
-  //   try {
-  //     const savedPost = await Posts.insert(postInfo);
-  //     res.status(201).json(savedPost);
-  //   } catch (error) {
-  //     // log error to database
-  //     console.log(error.message);
-  //     res.status(500).json({
-  //       message: "Error saving post message"
-  //     });
-  //   }
-  // couldn't get the above to work, not sure why need to look into this more...
-
-  const newPost = req.body;
-
-  Posts.insert(newPost)
+  Posts.insert(postInfo)
     .then(post => {
-      res.status(201).json(post);
+      res.status(210).json(post);
     })
-    .catch(err => {
+    .catch(error => {
+      // log error to server
+      console.log(error);
       res.status(500).json({
-        err: err,
         message: "Error saving post message"
       });
     });
 });
-// tested with Postman
+// TESTED with POSTMAN
 
 router.get("/", async (req, res) => {
   try {
@@ -72,7 +55,7 @@ router.get("/", async (req, res) => {
     });
   }
 });
-// tested with Postman
+// TESTED with POSTMAN
 
 router.get("/:id", validateUserId, async (req, res) => {
   try {
@@ -87,7 +70,7 @@ router.get("/:id", validateUserId, async (req, res) => {
     });
   }
 });
-// tested with Postman
+// TESTED with POSTMAN
 
 router.get("/:id/posts", validateUserId, async (req, res) => {
   try {
@@ -109,7 +92,7 @@ router.get("/:id/posts", validateUserId, async (req, res) => {
     });
   }
 });
-// tested with Postman
+// TESTED with POSTMAN
 
 router.delete("/:id", validateUserId, async (req, res) => {
   try {
@@ -129,9 +112,9 @@ router.delete("/:id", validateUserId, async (req, res) => {
     });
   }
 });
-// tested with Postman
+// TESTED with POSTMAN
 
-router.put("/:id", validateUserId, async (req, res) => {
+router.put("/:id", validateUserId, validateUser, async (req, res) => {
   try {
     const user = await Users.update(req.params.id, req.body);
     if (user) {
@@ -147,7 +130,7 @@ router.put("/:id", validateUserId, async (req, res) => {
     });
   }
 });
-// tested with Postman
+// TESTED with POSTMAN
 
 //custom middleware
 
@@ -157,15 +140,23 @@ router.put("/:id", validateUserId, async (req, res) => {
 // and respond with status 400 and { message: "invalid user id" }
 function validateUserId(req, res, next) {
   const { id } = req.params;
-  Users.getById(id).then(user => {
-    if (user) {
-      req.user = user;
-      next();
-    } else {
-      res.status(400).json({ message: "invalid user id" });
-    }
-  });
-  next();
+
+  Users.getById(id)
+    .then(user => {
+      if (user) {
+        req.user = user;
+        next();
+      } else {
+        res.status(404).json({ message: "invalid user id" });
+      }
+    })
+    .catch(error => {
+      // log error
+      console.log(error);
+      res.status(500).json({
+        message: "Error validating the user."
+      });
+    });
 }
 
 //  validates the body on a request to create a new user
