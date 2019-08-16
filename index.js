@@ -7,7 +7,7 @@ require("dotenv").config();
 const server = require("./server.js");
 
 // access the enviroment from node
-const port = process.env.PORT || 5000;
+const port = process.env.PORT || 4000;
 
 // dynamic ports
 server.listen(port, () => {
